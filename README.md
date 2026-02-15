@@ -14,6 +14,54 @@ NeuroBalance Engine functions as a predictive financial modeling framework that 
 
 Built as a foundational AI/ML project, this repository demonstrates how computational models can be applied to real-world financial decision-making and forecasting.
 
+neurobalance-engine/
+│
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── .gitignore
+│
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── sample_liabilities.csv
+│
+├── notebooks/
+│   ├── exploratory_analysis.ipynb
+│   └── model_experiments.ipynb
+│
+├── src/
+│   ├── __init__.py
+│   │
+│   ├── config/
+│   │   └── settings.py
+│   │
+│   ├── core/
+│   │   ├── amortization.py
+│   │   ├── interest_engine.py
+│   │   └── payoff_simulator.py
+│   │
+│   ├── models/
+│   │   ├── forecasting.py
+│   │   └── optimization.py
+│   │
+│   ├── utils/
+│   │   ├── validators.py
+│   │   └── helpers.py
+│   │
+│   └── main.py
+│
+├── tests/
+│   ├── test_interest_engine.py
+│   ├── test_amortization.py
+│   └── test_simulation.py
+│
+└── app/   (Optional if you deploy)
+    ├── templates/
+    ├── static/
+    └── app.py
+
+
 ---
 
 ## 🧪 Research Angle: Financial State-Transitions
