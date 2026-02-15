@@ -1,0 +1,7 @@
+/NeuroBalance-Web
+│── app.py                # The Flask Server (The Bridge)
+│── engine.py             # Your Logic (The Python Script from before)
+│── templates/
+│   └── index.html        # The Website Structure (HTML)
+└── static/
+    └── style.css         # The Design (CSS)
