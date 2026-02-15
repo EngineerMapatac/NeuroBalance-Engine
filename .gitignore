@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+
+# Data
+*.csv
+*.xlsx
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
