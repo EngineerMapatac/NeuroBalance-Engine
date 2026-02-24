@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
 from engine import NeuroBalanceEngine
-import math
 
 app = Flask(__name__)
 
@@ -15,7 +14,7 @@ def home():
             months = int(request.form['months'])
             
             extra_raw = request.form.get('extra')
-            extra = float(extra_raw) if extra_raw else 0.0000
+            extra = float(extra_raw) if extra_raw else 0.00
             
             currency = request.form.get('currency', '₱')
             
@@ -26,7 +25,7 @@ def home():
                 total_payable = float(total_payable_raw)
                 monthly_pmt = total_payable / months
                 engine = NeuroBalanceEngine(principal, months, monthly_payment=monthly_pmt)
-                rate = math.trunc((engine.monthly_rate * 100) * 10000) / 10000.0
+                rate = round((engine.monthly_rate * 100), 2)
             else:
                 rate = float(rate_raw)
                 engine = NeuroBalanceEngine(principal, months, monthly_interest_rate=rate)
@@ -40,7 +39,7 @@ def home():
             schedule_data = df.to_dict(orient='records')
 
             results = {
-                "total_interest": f"{currency}{total_interest:,.4f}",
+                "total_interest": f"{currency}{total_interest:,.2f}",
                 "months_saved": months_saved,
                 "actual_months": len(df),
                 "schedule": schedule_data,
@@ -58,7 +57,7 @@ def home():
         except ValueError:
             results = {"error": "Invalid input. Please enter numbers only."}
 
-        return render_template('index.html', results=results, inputs=inputs)
+    return render_template('index.html', results=results, inputs=inputs)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
