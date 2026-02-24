@@ -10,7 +10,7 @@ class NeuroBalanceEngine:
         if monthly_interest_rate is None and monthly_payment is not None:
             self.monthly_rate = self._infer_interest_rate(monthly_payment)
         else:
-            self.monthly_rate = monthly_interest_rate / 100.0000
+            self.monthly_rate = monthly_interest_rate / 100.0
 
         self.standard_payment = self._calculate_pmt()
 
@@ -21,7 +21,7 @@ class NeuroBalanceEngine:
         return numerator / denominator
 
     def _infer_interest_rate(self, target_payment):
-        low, high = 0.0000, 1.0000
+        low, high = 0.0, 1.0
         tolerance = 1e-6
         for _ in range(100):
             mid = (low + high) / 2
@@ -43,6 +43,7 @@ class NeuroBalanceEngine:
         remaining_balance = self.principal
         month = 0
         actual_payment = self.standard_payment + extra_payment
+        cumulative_paid = 0.0
 
         while remaining_balance > 0.01:
             month += 1
@@ -54,13 +55,15 @@ class NeuroBalanceEngine:
                 actual_payment = interest_charge + principal_paid
             
             remaining_balance -= principal_paid
+            cumulative_paid += actual_payment
             
             schedule.append({
                 "Month": month,
-                "Total Payment": round(actual_payment, 4),
-                "Principal": round(principal_paid, 4),
-                "Interest": round(interest_charge, 4),
-                "Balance": round(remaining_balance, 4)
+                "Total Payment": round(actual_payment, 2),
+                "Principal": round(principal_paid, 2),
+                "Interest": round(interest_charge, 2),
+                "Cumulative Paid": round(cumulative_paid, 2),
+                "Balance": round(remaining_balance, 2)
             })
             
             if month > (self.total_months * 3): break
