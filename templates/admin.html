@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - NeuroBalance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="padding: 2rem; background: #f8fafc; font-family: 'Inter', sans-serif;">
+    <div style="max-width: 1000px; margin: 0 auto;">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>🛡️ Admin Control Panel</h2>
+            <a href="{{ url_for('logout') }}" style="padding: 10px 20px; border: 1px solid #dc2626; color: #dc2626; border-radius: 6px; text-decoration: none;">Log Out</a>
+        </header>
+
+        <div class="grid-layout">
+            <section class="card">
+                <h3>Registered Users ({{ users|length }})</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #e2e8f0; text-align: left;">
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Admin?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.name }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>{{ "Yes" if u.is_admin else "No" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="card">
+                <h3>Platform Total Tracked Loans ({{ loans|length }})</h3>
+                <p>Total liabilities being managed across all users.</p>
+            </section>
+        </div>
+    </div>
+</body>
+</html>
