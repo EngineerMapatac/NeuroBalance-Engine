@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -6,7 +7,13 @@ from engine import NeuroBalanceEngine
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'neurobalance-secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
+# This checks for Render's PostgreSQL URL. If not found, it defaults to local SQLite.
+db_url = os.getenv('DATABASE_URL', 'sqlite:///users.db')
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+
 db = SQLAlchemy(app)
 
 login_manager = LoginManager()
@@ -18,6 +25,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(200))
+    is_admin = db.Column(db.Boolean, default=False)
     loans = db.relationship('Loan', backref='user', lazy=True)
 
 class Loan(db.Model):
@@ -101,16 +109,31 @@ def dashboard():
     user_loans = Loan.query.filter_by(user_id=current_user.id).all()
     return render_template('dashboard.html', loans=user_loans, user=current_user)
 
+@app.route('/admin')
+@login_required
+def admin_dashboard():
+    if not current_user.is_admin:
+        return "Access Denied. Admins only.", 403
+    
+    all_users = User.query.all()
+    all_loans = Loan.query.all()
+    return render_template('admin.html', users=all_users, loans=all_loans)
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
+        
         if User.query.filter_by(email=email).first():
             flash('Email address already exists')
             return redirect(url_for('signup'))
-        new_user = User(name=name, email=email, password=generate_password_hash(password, method='pbkdf2:sha256'))
+            
+        # Set your specific email to automatically become the admin
+        is_admin = True if email == 'admin@neurobalance.com' else False
+        
+        new_user = User(name=name, email=email, password=generate_password_hash(password, method='pbkdf2:sha256'), is_admin=is_admin)
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('login'))
@@ -122,11 +145,18 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
+        
         if not user or not check_password_hash(user.password, password):
             flash('Please check your login details and try again.')
             return redirect(url_for('login'))
+            
         login_user(user)
-        return redirect(url_for('dashboard'))
+        
+        # Redirect admins to the admin dashboard, normal users to the home page
+        if user.is_admin:
+            return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('home'))
+        
     return render_template('login.html')
 
 @app.route('/logout')
