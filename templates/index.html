@@ -21,6 +21,9 @@
             <div style="display: flex; gap: 10px; align-items: center;">
                 {% if user.is_authenticated %}
                     <span style="font-weight: bold; margin-right: 15px;">Hi, {{ user.name }}!</span>
+                    {% if user.is_admin %}
+                        <a href="{{ url_for('admin_dashboard') }}" style="padding: 10px 20px; border: none; background: #9333ea; color: white; border-radius: 6px; text-decoration: none; font-weight: bold;">Admin Panel</a>
+                    {% endif %}
                     <a href="{{ url_for('dashboard') }}" style="padding: 10px 20px; border: none; background: #16a34a; color: white; border-radius: 6px; text-decoration: none; font-weight: bold;">My Tracker</a>
                     <a href="{{ url_for('logout') }}" style="padding: 10px 20px; border: 1px solid #dc2626; background: white; color: #dc2626; border-radius: 6px; text-decoration: none; font-weight: bold;">Log Out</a>
                 {% else %}
@@ -33,7 +36,7 @@
         <div class="grid-layout">
             <section class="card input-card">
                 <h2>⚙️ Parameters</h2>
-                <form method="POST">
+                <form method="POST" action="/">
                     <div class="form-group">
                         <label>Currency</label>
                         <select name="currency">
@@ -78,6 +81,7 @@
                         </div>
                     {% else %}
                         <h2>📊 Simulation Results</h2>
+                        
                         <div style="text-align: right; margin-bottom: 1rem;">
                             {% if user.is_authenticated %}
                                 <form action="/save_loan" method="POST" style="display: inline;">
@@ -87,11 +91,20 @@
                                     <input type="hidden" name="extra" value="{{ inputs.extra }}">
                                     <input type="hidden" name="currency" value="{{ inputs.currency }}">
                                     <input type="hidden" name="total_interest" value="{{ results.total_interest }}">
-                                    <button type="submit" style="padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">💾 Save to Tracker</button>
+                                    <button type="submit" style="padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px;">💾 Save to Tracker</button>
                                 </form>
                             {% else %}
-                                <p style="font-size: 0.9rem; color: #64748b;">Want to save this calculation? <a href="{{ url_for('login') }}" style="color: #2563eb;">Log in to use the Tracker</a>.</p>
+                                <span style="font-size: 0.9rem; color: #64748b; margin-right: 15px;">Want to save this? <a href="{{ url_for('login') }}" style="color: #2563eb;">Log in</a>.</span>
                             {% endif %}
+                            
+                            <form action="/export" method="POST" style="display: inline;">
+                                <input type="hidden" name="principal" value="{{ inputs.principal }}">
+                                <input type="hidden" name="rate" value="{{ inputs.rate }}">
+                                <input type="hidden" name="months" value="{{ inputs.months }}">
+                                <input type="hidden" name="extra" value="{{ inputs.extra }}">
+                                <input type="hidden" name="total_payable" value="{{ inputs.total_payable }}">
+                                <button type="submit" style="padding: 8px 16px; background: #475569; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">📥 Export CSV</button>
+                            </form>
                         </div>
                         
                         <div class="stats-grid">
