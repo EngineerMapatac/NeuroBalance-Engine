@@ -13,12 +13,15 @@
     <div class="container">
         <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
             <div>
-                <h1 style="margin: 0;">NeuroBalance <span style="color: #2563eb;">Engine</span></h1>
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h1 style="margin: 0;">NeuroBalance <span style="color: #2563eb;">Engine</span></h1>
+                </a>
                 <p style="margin: 5px 0 0 0;">Predictive Financial Modeling System</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 {% if user.is_authenticated %}
                     <span style="font-weight: bold; margin-right: 15px;">Hi, {{ user.name }}!</span>
+                    <a href="{{ url_for('dashboard') }}" style="padding: 10px 20px; border: none; background: #16a34a; color: white; border-radius: 6px; text-decoration: none; font-weight: bold;">My Tracker</a>
                     <a href="{{ url_for('logout') }}" style="padding: 10px 20px; border: 1px solid #dc2626; background: white; color: #dc2626; border-radius: 6px; text-decoration: none; font-weight: bold;">Log Out</a>
                 {% else %}
                     <a href="{{ url_for('login') }}" style="padding: 10px 20px; border: 1px solid #2563eb; background: white; color: #2563eb; border-radius: 6px; text-decoration: none; font-weight: bold;">Log In</a>
@@ -75,6 +78,21 @@
                         </div>
                     {% else %}
                         <h2>📊 Simulation Results</h2>
+                        <div style="text-align: right; margin-bottom: 1rem;">
+                            {% if user.is_authenticated %}
+                                <form action="/save_loan" method="POST" style="display: inline;">
+                                    <input type="hidden" name="principal" value="{{ inputs.principal }}">
+                                    <input type="hidden" name="rate" value="{{ inputs.rate }}">
+                                    <input type="hidden" name="months" value="{{ inputs.months }}">
+                                    <input type="hidden" name="extra" value="{{ inputs.extra }}">
+                                    <input type="hidden" name="currency" value="{{ inputs.currency }}">
+                                    <input type="hidden" name="total_interest" value="{{ results.total_interest }}">
+                                    <button type="submit" style="padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">💾 Save to Tracker</button>
+                                </form>
+                            {% else %}
+                                <p style="font-size: 0.9rem; color: #64748b;">Want to save this calculation? <a href="{{ url_for('login') }}" style="color: #2563eb;">Log in to use the Tracker</a>.</p>
+                            {% endif %}
+                        </div>
                         
                         <div class="stats-grid">
                             <div class="stat-box">
