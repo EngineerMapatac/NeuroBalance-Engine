@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,7 +8,6 @@ from engine import NeuroBalanceEngine
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'neurobalance-secret-key'
 
-# This checks for Render's PostgreSQL URL. If not found, it defaults to local SQLite.
 db_url = os.getenv('DATABASE_URL', 'sqlite:///users.db')
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -65,6 +64,7 @@ def home():
             else:
                 rate = float(rate_raw)
                 engine = NeuroBalanceEngine(principal, months, monthly_interest_rate=rate)
+                total_payable = ""
 
             df = engine.generate_schedule(extra_payment=extra)
             total_interest = df["Interest"].sum()
@@ -80,12 +80,39 @@ def home():
             }
             inputs = {
                 "principal": principal, "rate": rate, "months": months, 
-                "extra": extra, "currency": currency
+                "extra": extra, "currency": currency, "total_payable": total_payable
             }
         except ValueError:
             results = {"error": "Invalid input. Please enter numbers only."}
 
     return render_template('index.html', results=results, inputs=inputs, user=current_user)
+
+@app.route('/export', methods=['POST'])
+def export():
+    principal = float(request.form['principal'])
+    months = int(request.form['months'])
+    extra_raw = request.form.get('extra')
+    extra = float(extra_raw) if extra_raw else 0.00
+    
+    rate_raw = request.form.get('rate')
+    total_payable_raw = request.form.get('total_payable')
+
+    if total_payable_raw:
+        total_payable = float(total_payable_raw)
+        monthly_pmt = total_payable / months
+        engine = NeuroBalanceEngine(principal, months, monthly_payment=monthly_pmt)
+    else:
+        rate = float(rate_raw)
+        engine = NeuroBalanceEngine(principal, months, monthly_interest_rate=rate)
+
+    df = engine.generate_schedule(extra_payment=extra)
+    output = df.to_csv(index=False)
+    
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=neurobalance_schedule.csv"}
+    )
 
 @app.route('/save_loan', methods=['POST'])
 @login_required
@@ -130,7 +157,6 @@ def signup():
             flash('Email address already exists')
             return redirect(url_for('signup'))
             
-        # Set your specific email to automatically become the admin
         is_admin = True if email == 'admin@neurobalance.com' else False
         
         new_user = User(name=name, email=email, password=generate_password_hash(password, method='pbkdf2:sha256'), is_admin=is_admin)
@@ -152,10 +178,9 @@ def login():
             
         login_user(user)
         
-        # Redirect admins to the admin dashboard, normal users to the home page
         if user.is_admin:
             return redirect(url_for('admin_dashboard'))
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
         
     return render_template('login.html')
 
