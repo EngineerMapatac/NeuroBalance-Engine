@@ -65,10 +65,12 @@ The system is built on a Python-centric stack designed for data manipulation and
 
 The roadmap for NeuroBalance Engine moves beyond deterministic math into predictive AI:
 
-1.  **Time-Series Forecasting:** Implementing ARIMA / LSTM-ready structures for income/expense variance.
-2.  **Strategy Classification:** Algorithmic modeling of "Snowball" vs. "Avalanche" methodologies.
-3.  **Reinforcement Learning:** Exploring RL-inspired agents to find optimal payoff paths dynamically.
-4.  **Predictive Scoring:** assigning "Financial Stress Scores" based on balance volatility.
+## 🔮 Roadmap (Future AI Expansion)
+
+* [ ] **Time-Series Forecasting:** ARIMA integration for income variance modeling.
+* [ ] **OCR Integration:** Upload loan statements to auto-fill data.
+* [ ] **Strategy Classifier:** AI recommendation engine (Avalanche vs. Snowball).
+* [x] **Visualizations:** Chart.js integration for decay curves.
 
 ---
 
@@ -80,24 +82,28 @@ Ensure you have Python 3.8+ installed.
 ### Installation
 
 1.  Clone the repository:
-    ```bash
+
+    ```
     git clone [https://github.com/yourusername/NeuroBalance-Engine.git](https://github.com/yourusername/NeuroBalance-Engine.git)
     cd NeuroBalance-Engine
     ```
 
 2.  Create a virtual environment:
-    ```bash
+
+    ```
     python -m venv venv
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
 
 3.  Install dependencies:
-    ```bash
+
+    ```
     pip install -r requirements.txt
     ```
 
 4.  Run the engine:
-    ```bash
+
+    ```
     python main.py
     ```
 
