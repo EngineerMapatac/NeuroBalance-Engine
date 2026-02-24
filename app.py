@@ -6,7 +6,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     results = None
-    inputs = {}
+    inputs = {'currency': '$'}
 
     if request.method == 'POST':
         try:
@@ -15,6 +15,7 @@ def home():
             months = int(request.form['months'])
             extra_raw = request.form.get('extra')
             extra = float(extra_raw) if extra_raw else 0.0000
+            currency = request.form.get('currency', '$')
 
             engine = NeuroBalanceEngine(principal, months, monthly_interest_rate=rate)
             df = engine.generate_schedule(extra_payment=extra)
@@ -25,12 +26,13 @@ def home():
             schedule_data = df.to_dict(orient='records')
 
             results = {
-                "total_interest": f"${total_interest:,.2f}",
+                "total_interest": f"{currency}{total_interest:,.4f}",
                 "months_saved": months_saved,
                 "actual_months": len(df),
-                "schedule": schedule_data
+                "schedule": schedule_data,
+                "currency": currency
             }
-            inputs = {"principal": principal, "rate": rate, "months": months, "extra": extra}
+            inputs = {"principal": principal, "rate": rate, "months": months, "extra": extra, "currency": currency}
 
         except ValueError:
             results = {"error": "Invalid input. Please enter numbers only."}
