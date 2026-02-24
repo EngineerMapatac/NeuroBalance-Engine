@@ -10,21 +10,17 @@ def home():
 
     if request.method == 'POST':
         try:
-            # 1. Get data from HTML form
             principal = float(request.form['principal'])
             rate = float(request.form['rate'])
-            years = int(request.form['years'])
-            extra = float(request.form.get('extra', 0))
+            months = int(request.form['months'])
+            extra = float(request.form.get('extra', 0.0000))
 
-            # 2. Run NeuroBalance Engine
-            engine = NeuroBalanceEngine(principal, years, annual_interest_rate=rate)
+            engine = NeuroBalanceEngine(principal, months, monthly_interest_rate=rate)
             df = engine.generate_schedule(extra_payment=extra)
 
-            # 3. Prepare data for the web
             total_interest = df["Interest"].sum()
-            months_saved = (years * 12) - len(df)
+            months_saved = months - len(df)
             
-            # Convert DataFrame to a list of dictionaries for HTML
             schedule_data = df.to_dict(orient='records')
 
             results = {
@@ -33,7 +29,7 @@ def home():
                 "actual_months": len(df),
                 "schedule": schedule_data
             }
-            inputs = {"principal": principal, "rate": rate, "years": years, "extra": extra}
+            inputs = {"principal": principal, "rate": rate, "months": months, "extra": extra}
 
         except ValueError:
             results = {"error": "Invalid input. Please enter numbers only."}
