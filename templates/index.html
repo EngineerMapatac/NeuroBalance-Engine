@@ -6,6 +6,7 @@
     <title>NeuroBalance Engine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -42,6 +43,7 @@
             <section class="card result-card">
                 {% if results %}
                     <h2>📊 Simulation Results</h2>
+                    
                     <div class="stats-grid">
                         <div class="stat-box">
                             <span class="label">Total Interest</span>
@@ -55,6 +57,10 @@
                             <span class="label">Payoff Time</span>
                             <span class="value">{{ results.actual_months }} Months</span>
                         </div>
+                    </div>
+
+                    <div class="chart-container" style="position: relative; height:300px; width:100%; margin-bottom: 2rem;">
+                        <canvas id="decayChart"></canvas>
                     </div>
 
                     <div class="table-container">
@@ -81,12 +87,62 @@
                             </tbody>
                         </table>
                         {% if results.schedule|length > 12 %}
-                        <p class="note">Showing first 12 months only.</p>
+                        <p class="note" style="text-align: center; color: #64748b; margin-top: 1rem;">Showing first 12 months only.</p>
                         {% endif %}
                     </div>
+
+                    <script>
+                        // Parse the JSON data passed from Flask
+                        const scheduleData = {{ results.schedule | tojson }};
+                        
+                        // Extract labels (Months) and data (Balances)
+                        const labels = scheduleData.map(row => 'Mo ' + row.Month);
+                        const balances = scheduleData.map(row => row.Balance);
+
+                        // Draw the chart
+                        const ctx = document.getElementById('decayChart').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Remaining Balance ($)',
+                                    data: balances,
+                                    borderColor: '#2563eb',
+                                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.4, // Makes the line curved instead of jagged
+                                    pointRadius: 0, // Hides dots for a cleaner line
+                                    pointHitRadius: 10
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false } // Hide legend for cleaner look
+                                },
+                                scales: {
+                                    y: { 
+                                        beginAtZero: true,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return '$' + value.toLocaleString();
+                                            }
+                                        }
+                                    },
+                                    x: {
+                                        ticks: { maxTicksLimit: 12 } // Don't crowd the x-axis
+                                    }
+                                }
+                            }
+                        });
+                    </script>
+
                 {% else %}
-                    <div class="placeholder">
-                        <p>Enter loan details to view projection.</p>
+                    <div class="placeholder" style="text-align: center; color: #64748b; margin-top: 4rem;">
+                        <p>Enter loan details to view projection and balance decay curve.</p>
                     </div>
                 {% endif %}
             </section>
