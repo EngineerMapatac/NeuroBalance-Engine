@@ -1,23 +1,37 @@
 from flask import Flask, render_template, request
-from engine import NeuroBalanceEngine  # Importing your logic
+from engine import NeuroBalanceEngine
+import math
 
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
     results = None
-    inputs = {'currency': '$'}
+    inputs = {'currency': '₱'}
 
     if request.method == 'POST':
         try:
             principal = float(request.form['principal'])
-            rate = float(request.form['rate'])
             months = int(request.form['months'])
+            
             extra_raw = request.form.get('extra')
             extra = float(extra_raw) if extra_raw else 0.0000
-            currency = request.form.get('currency', '$')
+            
+            currency = request.form.get('currency', '₱')
+            
+            total_payable_raw = request.form.get('total_payable')
+            rate_raw = request.form.get('rate')
 
-            engine = NeuroBalanceEngine(principal, months, monthly_interest_rate=rate)
+            if total_payable_raw:
+                total_payable = float(total_payable_raw)
+                monthly_pmt = total_payable / months
+                engine = NeuroBalanceEngine(principal, months, monthly_payment=monthly_pmt)
+                rate = math.trunc((engine.monthly_rate * 100) * 10000) / 10000.0
+            else:
+                rate = float(rate_raw)
+                engine = NeuroBalanceEngine(principal, months, monthly_interest_rate=rate)
+                total_payable = ""
+
             df = engine.generate_schedule(extra_payment=extra)
 
             total_interest = df["Interest"].sum()
@@ -32,12 +46,19 @@ def home():
                 "schedule": schedule_data,
                 "currency": currency
             }
-            inputs = {"principal": principal, "rate": rate, "months": months, "extra": extra, "currency": currency}
+            inputs = {
+                "principal": principal, 
+                "rate": rate, 
+                "months": months, 
+                "extra": extra, 
+                "currency": currency,
+                "total_payable": total_payable
+            }
 
         except ValueError:
             results = {"error": "Invalid input. Please enter numbers only."}
 
-    return render_template('index.html', results=results, inputs=inputs)
+        return render_template('index.html', results=results, inputs=inputs)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
