@@ -13,7 +13,8 @@ def home():
             principal = float(request.form['principal'])
             rate = float(request.form['rate'])
             months = int(request.form['months'])
-            extra = float(request.form.get('extra', 0.0000))
+            extra_raw = request.form.get('extra')
+            extra = float(extra_raw) if extra_raw else 0.0000
 
             engine = NeuroBalanceEngine(principal, months, monthly_interest_rate=rate)
             df = engine.generate_schedule(extra_payment=extra)

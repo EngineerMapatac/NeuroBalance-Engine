@@ -42,6 +42,11 @@
 
             <section class="card result-card">
                 {% if results %}
+                {% if results.error %}
+                    <div style="text-align: center; color: red; margin-top: 2rem;">
+                        <p>⚠️ {{ results.error }}</p>
+                    </div>
+                {% else %}
                     <h2>📊 Simulation Results</h2>
                     
                     <div class="stats-grid">
@@ -89,6 +94,8 @@
                         {% if results.schedule|length > 12 %}
                         <p class="note" style="text-align: center; color: #64748b; margin-top: 1rem;">Showing first 12 months only.</p>
                         {% endif %}
+                    {% else %}
+                    <div class="placeholder" style="text-align: center; color: #64748b; margin-top: 4rem;">
                     </div>
 
                     <script>
