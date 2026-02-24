@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Tracker - NeuroBalance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body style="padding: 2rem; background: #f8fafc; font-family: 'Inter', sans-serif;">
+    <div style="max-width: 1000px; margin: 0 auto;">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>📈 My Loan Tracker</h2>
+            <div>
+                <a href="/" style="padding: 10px 20px; background: #2563eb; color: white; border-radius: 6px; text-decoration: none; margin-right: 10px;">+ New Calculation</a>
+                <a href="{{ url_for('logout') }}" style="padding: 10px 20px; border: 1px solid #dc2626; color: #dc2626; border-radius: 6px; text-decoration: none;">Log Out</a>
+            </div>
+        </header>
+
+        <div class="card">
+            {% if loans %}
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #e2e8f0; text-align: left;">
+                            <th style="padding: 10px;">Principal</th>
+                            <th style="padding: 10px;">Rate (%)</th>
+                            <th style="padding: 10px;">Term (Months)</th>
+                            <th style="padding: 10px;">Extra Pay</th>
+                            <th style="padding: 10px;">Total Interest</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in loans %}
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                            <td style="padding: 10px;">{{ loan.currency }}{{ "%.2f"|format(loan.principal) }}</td>
+                            <td style="padding: 10px;">{{ loan.rate }}%</td>
+                            <td style="padding: 10px;">{{ loan.months }}</td>
+                            <td style="padding: 10px;">{{ loan.currency }}{{ "%.2f"|format(loan.extra) }}</td>
+                            <td style="padding: 10px; color: #dc2626;">{{ loan.total_interest }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #64748b;">You have not saved any loans yet. Go to the home page to run a simulation and save it here.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
