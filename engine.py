@@ -2,30 +2,41 @@ import numpy as np
 import pandas as pd
 
 class NeuroBalanceEngine:
-    def __init__(self, principal, duration_years, annual_interest_rate=None, monthly_payment=None):
-        """
-        Initialize the NeuroBalance Engine.
-        
-        Args:
-            principal (float): Total loan amount.
-            duration_years (int): Total loan term in years.
-            annual_interest_rate (float, optional): Annual interest rate (e.g., 5.5 for 5.5%).
-            monthly_payment (float, optional): Known monthly payment (used to infer rate if rate is None).
-        """
+    class NeuroBalanceEngine:
+    def __init__(self, principal, duration_months, monthly_interest_rate=None, monthly_payment=None):
         self.principal = principal
-        self.years = duration_years
-        self.total_months = duration_years * 12
+        self.total_months = int(duration_months)
         
-        # LOGIC: If rate is missing but payment is known, INFER the rate.
-        if annual_interest_rate is None and monthly_payment is not None:
-            print(f"🔄 Rate unknown. Inferring rate from payment: ${monthly_payment}...")
-            self.annual_rate = self._infer_interest_rate(monthly_payment)
-            print(f"✅ Inferred Annual Rate: {self.annual_rate * 100:.2f}%")
+        if monthly_interest_rate is None and monthly_payment is not None:
+            self.monthly_rate = self._infer_interest_rate(monthly_payment)
         else:
-            self.annual_rate = annual_interest_rate / 100 if annual_interest_rate is not None else 0.0
+            self.monthly_rate = monthly_interest_rate / 100.0000
 
-        self.monthly_rate = self.annual_rate / 12
         self.standard_payment = self._calculate_pmt()
+
+    def _calculate_pmt(self):
+        if self.monthly_rate == 0: return self.principal / self.total_months
+        numerator = self.principal * self.monthly_rate * ((1 + self.monthly_rate) ** self.total_months)
+        denominator = ((1 + self.monthly_rate) ** self.total_months) - 1
+        return numerator / denominator
+
+    def _infer_interest_rate(self, target_payment):
+        low, high = 0.0000, 1.0000
+        tolerance = 1e-6
+        for _ in range(100):
+            mid = (low + high) / 2
+            monthly_r = mid
+            numerator = self.principal * monthly_r * ((1 + monthly_r) ** self.total_months)
+            denominator = ((1 + monthly_r) ** self.total_months) - 1
+            guessed_pmt = numerator / denominator
+            
+            if abs(guessed_pmt - target_payment) < tolerance:
+                return mid
+            elif guessed_pmt < target_payment:
+                low = mid
+            else:
+                high = mid
+        return (low + high) / 2
 
     def _calculate_pmt(self):
         """Calculates standard amortization payment."""
