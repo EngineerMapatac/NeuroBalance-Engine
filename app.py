@@ -65,4 +65,77 @@ def home():
 
             results = {
                 "total_interest": f"{currency}{total_interest:,.2f}",
-                "months_
+                "months_saved": months_saved,
+                "actual_months": len(df),
+                "schedule": schedule_data,
+                "currency": currency
+            }
+            inputs = {
+                "principal": principal, "rate": rate, "months": months, 
+                "extra": extra, "currency": currency
+            }
+        except ValueError:
+            results = {"error": "Invalid input. Please enter numbers only."}
+
+    return render_template('index.html', results=results, inputs=inputs, user=current_user)
+
+@app.route('/save_loan', methods=['POST'])
+@login_required
+def save_loan():
+    new_loan = Loan(
+        user_id=current_user.id,
+        principal=float(request.form['principal']),
+        rate=float(request.form['rate']),
+        months=int(request.form['months']),
+        extra=float(request.form['extra']),
+        currency=request.form['currency'],
+        total_interest=request.form['total_interest']
+    )
+    db.session.add(new_loan)
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    user_loans = Loan.query.filter_by(user_id=current_user.id).all()
+    return render_template('dashboard.html', loans=user_loans, user=current_user)
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        if User.query.filter_by(email=email).first():
+            flash('Email address already exists')
+            return redirect(url_for('signup'))
+        new_user = User(name=name, email=email, password=generate_password_hash(password, method='pbkdf2:sha256'))
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = User.query.filter_by(email=email).first()
+        if not user or not check_password_hash(user.password, password):
+            flash('Please check your login details and try again.')
+            return redirect(url_for('login'))
+        login_user(user)
+        return redirect(url_for('dashboard'))
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(host='0.0.0.0', port=5000, debug=True)
