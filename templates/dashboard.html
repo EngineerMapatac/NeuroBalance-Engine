@@ -29,6 +29,35 @@
             </div>
         </div>
 
+        {% if loans|length > 1 %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 2rem;">
+            <div class="card" style="border-top: 4px solid #9333ea;">
+                <h3 style="margin-top: 0; color: #9333ea;">🏔️ Avalanche Strategy</h3>
+                <p style="font-size: 0.9rem; color: #64748b;">Maximum efficiency. Target these loans in this exact order to eliminate the highest rates and minimize total financial waste.</p>
+                <ol style="padding-left: 20px; margin-bottom: 0;">
+                    {% for loan in avalanche %}
+                    <li style="margin-bottom: 8px;">
+                        <strong>{{ loan.currency }}{{ "%.2f"|format(loan.principal) }}</strong> ({{ loan.rate }}%) 
+                        <span style="color: #64748b; font-size: 0.85rem;">- {{ loan.months }} Mos</span>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="card" style="border-top: 4px solid #0284c7;">
+                <h3 style="margin-top: 0; color: #0284c7;">⛄ Snowball Strategy</h3>
+                <p style="font-size: 0.9rem; color: #64748b;">Process momentum. Target the smallest balances first to quickly close accounts and build psychological wins.</p>
+                <ol style="padding-left: 20px; margin-bottom: 0;">
+                    {% for loan in snowball %}
+                    <li style="margin-bottom: 8px;">
+                        <strong>{{ loan.currency }}{{ "%.2f"|format(loan.principal) }}</strong> ({{ loan.rate }}%)
+                        <span style="color: #64748b; font-size: 0.85rem;">- {{ loan.months }} Mos</span>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card">
             {% if loans %}
                 <table style="width: 100%; border-collapse: collapse;">
