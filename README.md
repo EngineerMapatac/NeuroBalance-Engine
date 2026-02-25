@@ -14,7 +14,6 @@ NeuroBalance Engine functions as a predictive financial modeling framework that 
 
 Built as a foundational AI/ML project, this repository demonstrates how computational models can be applied to real-world financial decision-making and forecasting.
 
-
 ---
 
 ## 🧪 Research Angle: Financial State-Transitions
@@ -44,8 +43,9 @@ The current Minimum Viable Product includes the following modules:
 * **Liability Input Module:** Standardized handling of principal, duration, and total payable amounts.
 * **Interest Inference Engine:** Reverse-engineers or calculates effective interest rates.
 * **Amortization Modeling:** Detailed breakdown of principal vs. interest per period.
-* **Early Payment Simulation:** Dynamic adjustment of timelines based on extra contributions.
-* **Payoff Timeline Projection:** deterministic forecasting of "Day Zero" balance.
+* **Maturity Tracker:** Deterministic forecasting of exact payoff dates and timeline projection.
+* **Strategy Classifier:** Automated sorting of liabilities into optimized Avalanche and Snowball sequences.
+* **Financial Literacy Dashboard:** Real-time tracking of principal versus total interest cost.
 
 ---
 
@@ -53,24 +53,22 @@ The current Minimum Viable Product includes the following modules:
 
 The system is built on a Python-centric stack designed for data manipulation and future ML integration.
 
-* **Core Language:** Python 3.x
+* **Core Backend:** Python 3.x, Flask, SQLAlchemy
 * **Data Processing:** NumPy, Pandas
-* **Storage:** SQLite
-* **Future Integration:** Scikit-learn (for predictive models)
-* **Deployment (Optional):** Flask
+* **Frontend:** HTML, CSS, JavaScript, Chart.js
+* **Storage:** SQLite (Local) / PostgreSQL (Production)
+* **Deployment:** Render
 
 ---
 
-## 🧠 Future AI Expansion
+## 🔮 Roadmap (Future AI Expansion)
 
 The roadmap for NeuroBalance Engine moves beyond deterministic math into predictive AI:
 
-## 🔮 Roadmap (Future AI Expansion)
-
 * [ ] **Time-Series Forecasting:** ARIMA integration for income variance modeling.
 * [ ] **OCR Integration:** Upload loan statements to auto-fill data.
-* [ ] **Strategy Classifier:** AI recommendation engine (Avalanche vs. Snowball).
-* [x] **Visualizations:** Chart.js integration for decay curves.
+* [x] **Strategy Classifier:** AI recommendation engine (Avalanche vs. Snowball).
+* [x] **Visualizations:** Chart.js integration for dynamic decay curves.
 
 ---
 
@@ -83,28 +81,28 @@ Ensure you have Python 3.8+ installed.
 
 1.  Clone the repository:
 
-    ```
-    git clone [https://github.com/yourusername/NeuroBalance-Engine.git](https://github.com/yourusername/NeuroBalance-Engine.git)
+    ```bash
+    git clone [https://github.com/EngineerMapatac/NeuroBalance-Engine.git](https://github.com/EngineerMapatac/NeuroBalance-Engine.git)
     cd NeuroBalance-Engine
     ```
 
 2.  Create a virtual environment:
 
-    ```
+    ```bash
     python -m venv venv
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
 
 3.  Install dependencies:
 
-    ```
+    ```bash
     pip install -r requirements.txt
     ```
 
 4.  Run the engine:
 
-    ```
-    python main.py
+    ```bash
+    python app.py
     ```
 
 ---
