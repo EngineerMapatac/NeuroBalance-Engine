@@ -160,8 +160,16 @@ def dashboard():
     total_principal = sum(loan.principal for loan in user_loans)
     total_interest_all = sum(loan.total_interest for loan in user_loans)
     
+    # Strategy Classifier Engine
+    # Avalanche: Sort by Highest Interest Rate first (Mathematical Optimization)
+    avalanche_order = sorted(user_loans, key=lambda x: x.rate, reverse=True)
+    
+    # Snowball: Sort by Lowest Principal Balance first (Psychological Momentum)
+    snowball_order = sorted(user_loans, key=lambda x: x.principal)
+    
     return render_template('dashboard.html', loans=user_loans, user=current_user, 
-                           total_principal=total_principal, total_interest_all=total_interest_all)
+                           total_principal=total_principal, total_interest_all=total_interest_all,
+                           avalanche=avalanche_order, snowball=snowball_order)
 
 @app.route('/admin')
 @login_required
