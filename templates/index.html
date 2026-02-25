@@ -126,6 +126,12 @@
                                 <span class="label">Payoff Time</span>
                                 <span class="value">{{ results.actual_months }} Months</span>
                             </div>
+                            {% if results.end_date %}
+                            <div class="stat-box">
+                                <span class="label">Payoff Date</span>
+                                <span class="value" style="color: #16a34a;">{{ results.end_date }}</span>
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="chart-container" style="position: relative; height:300px; width:100%; margin-bottom: 2rem;">
