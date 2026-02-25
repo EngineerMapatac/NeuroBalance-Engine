@@ -1,4 +1,6 @@
 import os
+import calendar
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -8,7 +10,6 @@ from engine import NeuroBalanceEngine
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'neurobalance-secret-key')
 
-# Database Config
 db_url = os.getenv('DATABASE_URL', 'sqlite:///users.db')
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -36,7 +37,9 @@ class Loan(db.Model):
     months = db.Column(db.Integer, nullable=False)
     extra = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(5), nullable=False)
-    total_interest = db.Column(db.String(50))
+    total_interest = db.Column(db.Float, nullable=False)
+    start_date = db.Column(db.String(20))
+    end_date = db.Column(db.String(20))
 
 with app.app_context():
     db.create_all()
@@ -59,6 +62,7 @@ def home():
             currency = request.form.get('currency', '₱')
             total_payable_raw = request.form.get('total_payable')
             rate_raw = request.form.get('rate')
+            start_date_raw = request.form.get('start_date')
 
             if total_payable_raw:
                 total_payable = float(total_payable_raw)
@@ -71,23 +75,36 @@ def home():
                 total_payable = ""
 
             df = engine.generate_schedule(extra_payment=extra)
-            total_interest = df["Interest"].sum()
-            months_saved = months - len(df)
+            total_interest = float(df["Interest"].sum())
+            actual_months = len(df)
+            months_saved = months - actual_months
             schedule_data = df.to_dict(orient='records')
 
+            end_date_str = ""
+            if start_date_raw:
+                start_dt = datetime.strptime(start_date_raw, '%Y-%m-%d')
+                m = start_dt.month - 1 + actual_months
+                y = start_dt.year + m // 12
+                m = m % 12 + 1
+                d = min(start_dt.day, calendar.monthrange(y, m)[1])
+                end_date_str = datetime(y, m, d).strftime('%Y-%m-%d')
+
             results = {
-                "total_interest": f"{currency}{total_interest:,.2f}",
+                "total_interest_formatted": f"{currency}{total_interest:,.2f}",
+                "raw_interest": total_interest,
                 "months_saved": months_saved,
-                "actual_months": len(df),
+                "actual_months": actual_months,
                 "schedule": schedule_data,
-                "currency": currency
+                "currency": currency,
+                "end_date": end_date_str
             }
             inputs = {
                 "principal": principal, "rate": rate, "months": months, 
-                "extra": extra, "currency": currency, "total_payable": total_payable
+                "extra": extra, "currency": currency, "total_payable": total_payable,
+                "start_date": start_date_raw
             }
         except ValueError:
-            results = {"error": "Invalid input. Please enter numbers only."}
+            results = {"error": "Invalid input. Please check your numbers."}
 
     return render_template('index.html', results=results, inputs=inputs, user=current_user)
 
@@ -127,7 +144,9 @@ def save_loan():
         months=int(request.form['months']),
         extra=float(request.form['extra']),
         currency=request.form['currency'],
-        total_interest=request.form['total_interest']
+        total_interest=float(request.form['total_interest']),
+        start_date=request.form.get('start_date', ''),
+        end_date=request.form.get('end_date', '')
     )
     db.session.add(new_loan)
     db.session.commit()
@@ -137,7 +156,12 @@ def save_loan():
 @login_required
 def dashboard():
     user_loans = Loan.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', loans=user_loans, user=current_user)
+    
+    total_principal = sum(loan.principal for loan in user_loans)
+    total_interest_all = sum(loan.total_interest for loan in user_loans)
+    
+    return render_template('dashboard.html', loans=user_loans, user=current_user, 
+                           total_principal=total_principal, total_interest_all=total_interest_all)
 
 @app.route('/admin')
 @login_required
