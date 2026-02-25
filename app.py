@@ -36,6 +36,8 @@ class Loan(db.Model):
     extra = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(5), nullable=False)
     total_interest = db.Column(db.String(50))
+with app.app_context():
+    db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -191,6 +193,4 @@ def logout():
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(host='0.0.0.0', port=5000, debug=True)
