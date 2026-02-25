@@ -1,6 +1,7 @@
 import os
 import calendar
 from datetime import datetime
+from flask_migrate import Migrate
 from flask import Flask, render_template, request, redirect, url_for, flash, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -16,6 +17,7 @@ if db_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -40,9 +42,6 @@ class Loan(db.Model):
     total_interest = db.Column(db.Float, nullable=False)
     start_date = db.Column(db.String(20))
     end_date = db.Column(db.String(20))
-
-with app.app_context():
-    db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
