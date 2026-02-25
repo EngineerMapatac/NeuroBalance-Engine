@@ -3,8 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, Res
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_mail import Mail, Message
-from itsdangerous import URLSafeTimedSerializer
 from engine import NeuroBalanceEngine
 
 app = Flask(__name__)
@@ -16,16 +14,7 @@ if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
-# Email Config
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-
 db = SQLAlchemy(app)
-mail = Mail(app)
-s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -37,7 +26,6 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(200))
     is_admin = db.Column(db.Boolean, default=False)
-    is_verified = db.Column(db.Boolean, default=False)
     loans = db.relationship('Loan', backref='user', lazy=True)
 
 class Loan(db.Model):
@@ -173,46 +161,14 @@ def signup():
             
         is_admin = True if email == 'admin@neurobalance.com' else False
         
-        # Admins are auto-verified, regular users are not
-        is_verified = True if is_admin else False
-        
-        new_user = User(name=name, email=email, password=generate_password_hash(password, method='pbkdf2:sha256'), is_admin=is_admin, is_verified=is_verified)
+        new_user = User(name=name, email=email, password=generate_password_hash(password, method='pbkdf2:sha256'), is_admin=is_admin)
         db.session.add(new_user)
         db.session.commit()
-
-        if not is_admin:
-            token = s.dumps(email, salt='email-confirm')
-            link = url_for('confirm_email', token=token, _external=True)
-            msg = Message('Verify your NeuroBalance Account', sender=os.getenv('MAIL_USERNAME'), recipients=[email])
-            msg.body = f'Welcome to NeuroBalance! Click here to verify your account: {link}'
-            try:
-                mail.send(msg)
-                flash('An email has been sent to you. Please verify your account.')
-            except Exception:
-                flash('Account created, but email failed to send. Please contact admin.')
-            return redirect(url_for('login'))
-        else:
-            flash('Admin account created and verified.')
-            return redirect(url_for('login'))
+        
+        flash('Account created successfully! Please log in.')
+        return redirect(url_for('login'))
 
     return render_template('signup.html')
-
-@app.route('/confirm_email/<token>')
-def confirm_email(token):
-    try:
-        email = s.loads(token, salt='email-confirm', max_age=3600)
-    except:
-        flash('The confirmation link is invalid or has expired.')
-        return redirect(url_for('login'))
-    
-    user = User.query.filter_by(email=email).first_or_404()
-    if user.is_verified:
-        flash('Account already verified. Please log in.')
-    else:
-        user.is_verified = True
-        db.session.commit()
-        flash('You have verified your account. Thanks!')
-    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -223,10 +179,6 @@ def login():
         
         if not user or not check_password_hash(user.password, password):
             flash('Please check your login details and try again.')
-            return redirect(url_for('login'))
-            
-        if not user.is_verified:
-            flash('Please verify your email address before logging in.')
             return redirect(url_for('login'))
             
         login_user(user)
