@@ -1,9 +1,10 @@
 import os
 import calendar
 from datetime import datetime
-from flask_migrate import Migrate
+import re
 from flask import Flask, render_template, request, redirect, url_for, flash, Response
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from engine import NeuroBalanceEngine
@@ -156,19 +157,36 @@ def save_loan():
 def dashboard():
     user_loans = Loan.query.filter_by(user_id=current_user.id).all()
     
-    total_principal = sum(loan.principal for loan in user_loans)
-    total_interest_all = sum(loan.total_interest for loan in user_loans)
+    def clean(val):
+        if isinstance(val, str):
+            num = re.sub(r'[^\d.]', '', val)
+            return float(num) if num else 0.0
+        return float(val) if val else 0.0
+
+    for loan in user_loans:
+        loan.clean_principal = clean(loan.principal)
+        loan.clean_interest = clean(loan.total_interest)
+        loan.clean_rate = clean(loan.rate)
+        loan.clean_extra = clean(loan.extra)
+
+    total_principal = sum(loan.clean_principal for loan in user_loans)
+    total_interest_all = sum(loan.clean_interest for loan in user_loans)
     
-    # Strategy Classifier Engine
-    # Avalanche: Sort by Highest Interest Rate first (Mathematical Optimization)
-    avalanche_order = sorted(user_loans, key=lambda x: x.rate, reverse=True)
-    
-    # Snowball: Sort by Lowest Principal Balance first (Psychological Momentum)
-    snowball_order = sorted(user_loans, key=lambda x: x.principal)
+    avalanche_order = sorted(user_loans, key=lambda x: x.clean_rate, reverse=True)
+    snowball_order = sorted(user_loans, key=lambda x: x.clean_principal)
     
     return render_template('dashboard.html', loans=user_loans, user=current_user, 
                            total_principal=total_principal, total_interest_all=total_interest_all,
                            avalanche=avalanche_order, snowball=snowball_order)
+
+@app.route('/delete_loan/<int:loan_id>', methods=['POST'])
+@login_required
+def delete_loan(loan_id):
+    loan_to_delete = Loan.query.get_or_404(loan_id)
+    if loan_to_delete.user_id == current_user.id:
+        db.session.delete(loan_to_delete)
+        db.session.commit()
+    return redirect(url_for('dashboard'))
 
 @app.route('/admin')
 @login_required
