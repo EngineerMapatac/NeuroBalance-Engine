@@ -5,6 +5,21 @@
     <title>My Tracker - NeuroBalance</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script>
+        function toggleAnalysis(id) {
+            var row = document.getElementById('analysis-' + id);
+            var btn = document.getElementById('btn-' + id);
+            if (row.style.display === 'none' || row.style.display === '') {
+                row.style.display = 'table-row';
+                btn.innerText = 'Hide';
+                btn.style.background = '#cbd5e1';
+            } else {
+                row.style.display = 'none';
+                btn.innerText = 'Analyze';
+                btn.style.background = '#e2e8f0';
+            }
+        }
+    </script>
 </head>
 <body style="padding: 2rem; background: #f8fafc; font-family: 'Inter', sans-serif;">
     <div style="max-width: 1000px; margin: 0 auto;">
@@ -69,6 +84,7 @@
                             <th style="padding: 10px;">Maturity Date</th>
                             <th style="padding: 10px;">Extra Pay</th>
                             <th style="padding: 10px;">Total Interest</th>
+                            <th style="padding: 10px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,6 +96,29 @@
                             <td style="padding: 10px; font-weight: bold; color: #16a34a;">{{ loan.end_date or 'N/A' }}</td>
                             <td style="padding: 10px;">{{ loan.currency }}{{ "%.2f"|format(loan.extra) }}</td>
                             <td style="padding: 10px; color: #dc2626;">{{ loan.currency }}{{ "%.2f"|format(loan.total_interest) }}</td>
+                            <td style="padding: 10px;">
+                                <button id="btn-{{ loop.index }}" onclick="toggleAnalysis('{{ loop.index }}')" style="padding: 6px 12px; background: #e2e8f0; color: #475569; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Analyze</button>
+                            </td>
+                        </tr>
+                        <tr id="analysis-{{ loop.index }}" style="display: none; background-color: #f8fafc; border-bottom: 2px solid #cbd5e1;">
+                            <td colspan="7" style="padding: 15px 20px; font-size: 0.9rem; color: #334155; line-height: 1.6;">
+                                <strong>💡 Loan Insights:</strong><br>
+                                &bull; <strong>Interest Burden:</strong> The total interest is <strong>{{ "%.1f"|format((loan.total_interest / loan.principal) * 100) }}%</strong> of your original principal. This is the true cost of borrowing.<br>
+                                &bull; <strong>Rate Assessment:</strong> 
+                                {% if loan.rate >= 10 %}
+                                    <span style="color: #dc2626; font-weight: bold;">High-Interest.</span> Prioritize paying this off using the Avalanche strategy to prevent massive compound interest waste.
+                                {% elif loan.rate >= 5 %}
+                                    <span style="color: #d97706; font-weight: bold;">Moderate-Interest.</span> Maintain payments, but consider increasing your extra monthly contribution.
+                                {% else %}
+                                    <span style="color: #16a34a; font-weight: bold;">Low-Interest.</span> It is safer to stick to standard payments while investing your extra cash elsewhere.
+                                {% endif %}<br>
+                                &bull; <strong>Behavioral Tip:</strong> 
+                                {% if loan.extra > 0 %}
+                                    You are paying an extra {{ loan.currency }}{{ "%.2f"|format(loan.extra) }} monthly. Keep building this momentum to accelerate your payoff date!
+                                {% else %}
+                                    You are making the minimum payments. Try adding a small extra amount monthly to see a drastic drop in maturity time.
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
