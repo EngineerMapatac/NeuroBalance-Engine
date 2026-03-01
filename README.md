@@ -109,7 +109,7 @@ Ensure you have Python 3.8+ installed.
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the Apache License. See `LICENSE` for more information.
 
 ---
 *Last Updated: February 2026*
